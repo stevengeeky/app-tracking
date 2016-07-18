@@ -23,29 +23,37 @@ module load mrtrix/0.2.12
 ###################################################################################################
 
 echo "converting input to mif (should take a few minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
-time mrconvert $input_nii_gz dwi.mif
-ret=$?
-if [ ! $ret -eq 0 ]; then
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
-    echo $ret > finished
-    exit $ret
+if [ -f dwi.mif ]; then
+    echo "dwi.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
+    time mrconvert $input_nii_gz dwi.mif
+    ret=$?
+    if [ ! $ret -eq 0 ]; then
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
+        echo $ret > finished
+        exit $ret
+    else
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
+    fi
 fi
 
 ###################################################################################################
 
 echo "make mask from dwi data (about 18 minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
-time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
-ret=$?
-if [ ! $ret -eq 0 ]; then
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
-    echo $ret > finished
-    exit $ret
+if [ -f brainmask.mif ]; then
+    echo "brainmask.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+    time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
+    ret=$?
+    if [ ! $ret -eq 0 ]; then
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+        echo $ret > finished
+        exit $ret
+    else
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+    fi
 fi
 
 ###################################################################################################
@@ -87,7 +95,7 @@ fi
 #each takes longer and longer between 10 minutes to several hours(?)
 #for i_lmax in 2 4 6 8 10 12; do
 for i_lmax in `jq '.lmax[]' config.json`; do
-    echo "running $i_lmax"
+    echo "running lmax:$i_lmax"
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
     time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif lmax${i_lmax}.mif
     ret=$?
