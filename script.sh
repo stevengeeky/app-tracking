@@ -11,6 +11,9 @@
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
 
+NUMFIBERS=`jq -r '.fibers'`
+MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted'`
+
 echo "input_nii_gz:$input_nii_gz"
 echo "input_dwi_b:$input_dwi_b"
 
@@ -128,6 +131,30 @@ for i_lmax in `jq '.lmax[]' config.json`; do
         fi
     fi
 done 
+
+###################################################################################################
+
+#entire thing runs in about 10 minutes?
+track=0
+while [ $track -lt `jq -r '.tracks'` ]; do
+    outfile=tensor.${track}.tck 
+    if [ -f $outfile ]; then
+        echo "$outfile already exist... skipping"
+    else
+        echo "computing streamtrack:$track"
+        #TODO - adjust progress based on $track / config
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating track:$track\"}" ${SCA_PROGRESS_URL}.track > /dev/null
+        time streamtrack DT_STREAM dwi.mif $outfile -seed wm.mif -mask wm.mif -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+        ret=$?
+        if [ ! $ret -eq 0 ]; then
+            curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track:$track\"}" ${SCA_PROGRESS_URL}.track > /dev/null
+            echo $ret > finished
+            exit $ret
+        fi
+    fi
+    let track=track+1
+done 
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.track > /dev/null
 
 echo "all done successfully"
 echo 0 > finished
