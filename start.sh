@@ -12,7 +12,7 @@ then
 fi
 
 #patch libssl issue caused by some module overriding libpath
-unset LD_LIBRARY_PATH
+#unset LD_LIBRARY_PATH
 
 #find out which environment we are in
 hostname | grep karst > /dev/null

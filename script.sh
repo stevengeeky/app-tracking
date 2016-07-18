@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #fixing .module sometimes causes curl / git to fail
-unset LD_LIBRARY_PATH
+#unset LD_LIBRARY_PATH
 
 #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\"}" $SCA_PROGRESS_URL
 
