@@ -61,19 +61,29 @@ fi
 ###################################################################################################
 
 echo "fit tensor model (takes about 16 minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-time tensor2FA dt.mif - | mrmult - brainmask.mif fa.mif
-#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"msg\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-#time tensor2vector dt.mif - | mrmult - fa.mif ev.mif
-ret=$?
-if [ ! $ret -eq 0 ]; then
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-    echo $ret > finished
-    exit $ret
+if [ -f dt.mif ]; then
+    echo "dt.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
+fi
+
+if [ -f fa.mif ]; then
+    echo "fa.mif already exist... skipping"
+else
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    time tensor2FA dt.mif - | mrmult - brainmask.mif fa.mif
+
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"msg\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    #time tensor2vector dt.mif - | mrmult - fa.mif ev.mif
+    ret=$?
+    if [ ! $ret -eq 0 ]; then
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+        echo $ret > finished
+        exit $ret
+    else
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    fi
 fi
 
 ###################################################################################################
