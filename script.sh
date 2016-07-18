@@ -179,7 +179,7 @@ while [ $track -lt `jq -r '.tracks' config.json` ]; do
         for i_lmax in `jq '.lmax[]' config.json`; do
             progress_url=${SCA_PROGRESS_URL}.$track.$i_tracktype.$i_lmax
             curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\":\"running steamtrack\"}" $progress_url > /dev/null
-            time streamtrack $i_tracktype lmax.${i_lmax}.mif csd_lmax.${i_lmax}.${i_tracktype}.${i_track}-$NUMFIBERS.tck -seed wm.mif -mask wm.mif  -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+            time streamtrack $i_tracktype lmax.${i_lmax}.mif output.${track}.${i_tracktype}.${i_lmax}.tck -seed wm.mif -mask wm.mif  -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
             ret=$?
             if [ ! $ret -eq 0 ]; then
                 curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track:$track\"}" $progress_url > /dev/null
