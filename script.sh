@@ -11,8 +11,8 @@
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
 
-NUMFIBERS=`jq -r '.fibers'`
-MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted'`
+NUMFIBERS=`jq -r '.fibers' config.json`
+MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted' config.json`
 
 echo "input_nii_gz:$input_nii_gz"
 echo "input_dwi_b:$input_dwi_b"
@@ -136,7 +136,7 @@ done
 
 #entire thing runs in about 10 minutes?
 track=0
-while [ $track -lt `jq -r '.tracks'` ]; do
+while [ $track -lt `jq -r '.tracks' config.json` ]; do
     outfile=tensor.${track}.tck 
     if [ -f $outfile ]; then
         echo "$outfile already exist... skipping"
