@@ -112,16 +112,20 @@ fi
 #each takes longer and longer between 10 minutes to several hours(?)
 #for i_lmax in 2 4 6 8 10 12; do
 for i_lmax in `jq '.lmax[]' config.json`; do
-    echo "running lmax:$i_lmax"
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
-    time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif lmax${i_lmax}.mif
-    ret=$?
-    if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
-        echo $ret > finished
-        exit $ret
+    if [ -f lmax${i_lmax}.mif ]; then
+        echo "lmax${i_lmax}.mif already exist... skipping"
     else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
+        echo "computing lmax:$i_lmax"
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
+        time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif lmax${i_lmax}.mif
+        ret=$?
+        if [ ! $ret -eq 0 ]; then
+            curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
+            echo $ret > finished
+            exit $ret
+        else
+            curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
+        fi
     fi
 done 
 
