@@ -8,16 +8,17 @@ unset LD_LIBRARY_PATH
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.input_nii_gz' config.json`
 
+echo "input_nii_gz:$input_nii_gz"
+
 module load mrtrix/0.2.12
 
-echo "converting wm_mask.nii.gz to mif"
-
+#echo "converting wm_mask.nii.gz to mif"
 #convert wm mask (less than a minute) (used by step 3?)
 #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input wm_mask to mif\"}" ${SCA_PROGRESS_URL}.mask2mif
 #time mrconvert $mask_nii_gz wm.mif
 #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.mask2mif
 
-#(few minutes)
+echo "converting input to mif (should take a few minutes)"
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi
 time mrconvert $input_nii_gz dwi.mif
 ret=$?
@@ -29,7 +30,7 @@ else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif
 fi
 
-#make mask from dwi data (about 18 minutes)
+echo "make mask from dwi data (about 18 minutes)"
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask
 time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
 ret=$?

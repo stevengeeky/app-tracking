@@ -51,7 +51,7 @@ cat <<EOT >> task.pbs
 #PBS -N sca-service-neuro-tracking-step1
 #PBS -V
 cd \$PBS_O_WORKDIR
-./$SCA_SERVICE_DIR/script.sh
+$SCA_SERVICE_DIR/script.sh
 EOT
 
 ###############################################################
@@ -59,4 +59,5 @@ EOT
 jobid=`qsub task.pbs`
 echo $jobid > jobid
 
-
+echo "job submitted: $jobid"
+cat task.pbs
