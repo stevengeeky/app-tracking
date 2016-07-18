@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#this script creates lmax(N).mif from diffusion input data and .b file
+
 #fixing .module sometimes causes curl / git to fail
 #unset LD_LIBRARY_PATH
 
@@ -63,8 +65,8 @@ curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"stat
 time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 time tensor2FA dt.mif - | mrmult - brainmask.mif fa.mif
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"msg\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-time tensor2vector dt.mif - | mrmult - fa.mif ev.mif
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"msg\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+#time tensor2vector dt.mif - | mrmult - fa.mif ev.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
     curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
@@ -111,4 +113,4 @@ done
 echo "all done successfully"
 echo 0 > finished
 
-
+$SCA_SERVICE_DIR/write_products.py
