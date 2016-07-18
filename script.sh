@@ -23,44 +23,44 @@ module load mrtrix/0.2.12
 ###################################################################################################
 
 echo "converting input to mif (should take a few minutes)"
-curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
 time mrconvert $input_nii_gz dwi.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
     echo $ret > finished
     exit $ret
 else
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
 fi
 
 ###################################################################################################
 
 echo "make mask from dwi data (about 18 minutes)"
-curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
 time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
     echo $ret > finished
     exit $ret
 else
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
 fi
 
 ###################################################################################################
 
 echo "fit tensor model (takes about 16 minutes)"
-curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2tensor
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
 time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
 ret=$?
 if [ ! $ret -eq 0 ]; then
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
     echo $ret > finished
     exit $ret
 else
-    curl -o /dev/null -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2tensor
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 fi
 
 ###################################################################################################
