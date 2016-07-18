@@ -47,7 +47,7 @@ if [ $execenv == "bigred" ]; then
 fi
 
 cat <<EOT >> task.pbs
-#PBS -l walltime=1:00:00
+#PBS -l walltime=0:30:00
 #PBS -N sca-service-neuro-tracking-step1
 #PBS -V
 cd \$PBS_O_WORKDIR
