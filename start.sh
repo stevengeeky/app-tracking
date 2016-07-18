@@ -51,7 +51,7 @@ cat <<EOT >> task.pbs
 #PBS -N sca-service-neuro-tracking-step1
 #PBS -V
 cd \$PBS_O_WORKDIR
-./script.sh
+./$SCA_SERVICE_DIR/script.sh
 EOT
 
 ###############################################################
