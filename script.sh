@@ -115,12 +115,13 @@ fi
 #each takes longer and longer between 10 minutes to several hours(?)
 #for i_lmax in 2 4 6 8 10 12; do
 for i_lmax in `jq '.lmax[]' config.json`; do
-    if [ -f lmax${i_lmax}.mif ]; then
-        echo "lmax${i_lmax}.mif already exist... skipping"
+    outfile=lmax.${i_lmax}.mif
+    if [ -f $outfile ]; then
+        echo "$outfile already exist... skipping"
     else
         echo "computing lmax:$i_lmax"
         curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
-        time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif lmax${i_lmax}.mif
+        time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif $outfile
         ret=$?
         if [ ! $ret -eq 0 ]; then
             curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
@@ -148,7 +149,7 @@ fi
 
 ###################################################################################################
 
-#entire thing runs in about 10 minutes?
+#each track takes about 40 seconds (times the number of tracks)
 track=0
 while [ $track -lt `jq -r '.tracks' config.json` ]; do
     outfile=tensor.${track}.tck 
@@ -169,6 +170,29 @@ while [ $track -lt `jq -r '.tracks' config.json` ]; do
     let track=track+1
 done 
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.track > /dev/null
+
+###################################################################################################
+
+track=0
+while [ $track -lt `jq -r '.tracks' config.json` ]; do
+    for i_tracktype in SD_STREAM SD_PROB; do
+        for i_lmax in `jq '.lmax[]' config.json`; do
+            progress_url=${SCA_PROGRESS_URL}.$track.$i_tracktype.$i_lmax
+            curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\":\"running steamtrack\"}" $progress_url > /dev/null
+            time streamtrack $i_tracktype lmax.${i_lmax}.mif csd_lmax.${i_lmax}.${i_tracktype}.${i_track}-$NUMFIBERS.tck -seed wm.mif -mask wm.mif  -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+            ret=$?
+            if [ ! $ret -eq 0 ]; then
+                curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track:$track\"}" $progress_url > /dev/null
+                echo $ret > finished
+                exit $ret
+            fi
+            curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" $progress_url > /dev/null
+        done
+    done
+    let track=track+1
+done 
+
+###################################################################################################
 
 echo "all done successfully"
 echo 0 > finished
