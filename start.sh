@@ -32,7 +32,6 @@ echo "seems to be running on $execenv"
 echo "clean up from previous run"
 rm products.json
 rm finished 
-rm *.mif
 
 ###############################################################
 # generate task.pbs
