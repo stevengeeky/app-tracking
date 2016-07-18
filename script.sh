@@ -20,12 +20,28 @@ echo "converting wm_mask.nii.gz to mif"
 #(few minutes)
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi
 time mrconvert $input_nii_gz dwi.mif
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif
+ret=$?
+if [ ! $ret -eq 0]; then
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif
+    echo $ret > finished
+    exit $ret
+else
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif
+fi
 
 #make mask from dwi data (about 18 minutes)
 curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask
 time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask
+ret=$?
+if [ ! $ret -eq 0]; then
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask
+    echo $ret > finished
+    exit $ret
+else
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask
+fi
 
-echo $ret > finished
-exit $ret #needed to tell pbs the proper exit code?
+echo "all done successfully"
+echo 0 > finished
+
+
