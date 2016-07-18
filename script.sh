@@ -10,6 +10,7 @@
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
+input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_nii_gz' config.json`
 
 NUMFIBERS=`jq -r '.fibers' config.json`
 MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted' config.json`
@@ -18,12 +19,6 @@ echo "input_nii_gz:$input_nii_gz"
 echo "input_dwi_b:$input_dwi_b"
 
 module load mrtrix/0.2.12
-
-#echo "converting wm_mask.nii.gz to mif"
-#convert wm mask (less than a minute) (used by step 3?)
-#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input wm_mask to mif\"}" ${SCA_PROGRESS_URL}.mask2mif
-#time mrconvert $mask_nii_gz wm.mif
-#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.mask2mif
 
 ###################################################################################################
 
@@ -97,9 +92,10 @@ if [ -f sf.mif ]; then
 else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running erode\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
     time erode brainmask.mif -npass 3 - | mrmult fa.mif - - | threshold - -abs 0.7 sf.mif
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 fi
 
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 time estimate_response dwi.mif sf.mif -lmax 6 -grad $input_dwi_b response.txt
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -131,6 +127,20 @@ for i_lmax in `jq '.lmax[]' config.json`; do
         fi
     fi
 done 
+
+###################################################################################################
+
+#Franco says wm_mask.nii.gz comes from somewhere else
+#echo "converting wm_mask.nii.gz to mif"
+#time convert wm mask (less than a minute) (used by step 3?)
+
+echo "converting $input_mask_nii_gz to wm.mif"
+if [ -f wm.mif ]; then
+    echo "wm.mif already exist... skipping"
+else
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"converting $input_mask_nii_gz to wm.mif\"}" ${SCA_PROGRESS_URL}.masknii > /dev/null
+    time mrconvert $input_mask_nii_gz wm.mif
+fi
 
 ###################################################################################################
 
