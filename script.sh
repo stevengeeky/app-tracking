@@ -95,15 +95,19 @@ else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 fi
 
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
-time estimate_response dwi.mif sf.mif -lmax 6 -grad $input_dwi_b response.txt
-ret=$?
-if [ ! $ret -eq 0 ]; then
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
-    echo $ret > finished
-    exit $ret
+if [ -f response.txt ]; then
+    echo "response.txt already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    time estimate_response dwi.mif sf.mif -lmax 6 -grad $input_dwi_b response.txt
+    ret=$?
+    if [ ! $ret -eq 0 ]; then
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+        echo $ret > finished
+        exit $ret
+    else
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    fi
 fi
 
 ###################################################################################################
