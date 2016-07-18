@@ -16,14 +16,14 @@ module load mrtrix/0.2.12
 
 #echo "converting wm_mask.nii.gz to mif"
 #convert wm mask (less than a minute) (used by step 3?)
-#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input wm_mask to mif\"}" ${SCA_PROGRESS_URL}.mask2mif
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input wm_mask to mif\"}" ${SCA_PROGRESS_URL}.mask2mif
 #time mrconvert $mask_nii_gz wm.mif
 #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.mask2mif
 
 ###################################################################################################
 
 echo "converting input to mif (should take a few minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
 time mrconvert $input_nii_gz dwi.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -37,7 +37,7 @@ fi
 ###################################################################################################
 
 echo "make mask from dwi data (about 18 minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
 time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -51,11 +51,11 @@ fi
 ###################################################################################################
 
 echo "fit tensor model (takes about 16 minutes)"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"message\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 time tensor2FA dt.mif - | mrmult - brainmask.mif fa.mif
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"message\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.6, \"status\": \"running\", \"msg\": \"running tensor2vector\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
 time tensor2vector dt.mif - | mrmult - fa.mif ev.mif
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -69,9 +69,9 @@ fi
 ###################################################################################################
 
 echo "exteimate response function"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"running erode\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running erode\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 time erode brainmask.mif -npass 3 - | mrmult fa.mif - - | threshold - -abs 0.7 sf.mif
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 5, \"status\": \"running\", \"message\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 time estimate_response dwi.mif sf.mif -lmax 6 -grad $input_dwi_b response.txt
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -85,9 +85,10 @@ fi
 ###################################################################################################
 
 #each takes longer and longer between 10 minutes to several hours(?)
-for i_lmax in 2 4 6 8 10 12; do
+#for i_lmax in 2 4 6 8 10 12; do
+for i_lmax in `jq '.lmax[]' config.json`; do
     echo "running $i_lmax"
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"message\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$i_lmax\"}" ${SCA_PROGRESS_URL}.lmax_$i_lmax > /dev/null
     time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $i_lmax -mask brainmask.mif lmax${i_lmax}.mif
     ret=$?
     if [ ! $ret -eq 0 ]; then
