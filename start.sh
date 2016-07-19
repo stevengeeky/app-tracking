@@ -22,6 +22,7 @@ fi
 echo $HOME | grep -i bigred > /dev/null
 if [ $? -eq 0 ]; then
     execenv=bigred
+    module load ccm
 fi
 if [ -z "$execenv" ]; then 
     print "couldn't figure out which environment this is"
@@ -34,30 +35,54 @@ rm products.json
 rm finished 
 
 ###############################################################
-# generate task.pbs
-echo "#!/bin/bash" > task.pbs
+# run prep.pbs
 
 if [ $execenv == "karst" ]; then
-    echo "#PBS -l nodes=1:ppn=16:dc2" >> task.pbs
+    OPTS=""
 fi
 
 if [ $execenv == "bigred" ]; then
-    echo "#PBS -l nodes=1:ppn=16:dc2" >> task.pbs
-    echo "#PBS -l gres=ccm" >> task.pbs
+    OPTS="-v CCM=1 -l gres=ccm"
 fi
-
-cat <<EOT >> task.pbs
-#PBS -l walltime=0:30:00
-#PBS -N sca-service-neuro-tracking-step1
-#PBS -V
-cd \$PBS_O_WORKDIR
-$SCA_SERVICE_DIR/script.sh
-EOT
+prep_jobid = $(qsub $OPTS prep.pbs)
 
 ###############################################################
-# submit it
-jobid=`qsub task.pbs`
-echo $jobid > jobid
+# run lmax.pbs (after prep.pbs)
 
-echo "job submitted: $jobid"
-cat task.pbs
+lmax_jobids=""
+for i_lmax in `jq '.lmax[]' config.json`; do
+    if [ $execenv == "karst" ]; then
+        OPTS="-v LMAX=$i_lmax"
+    fi
+
+    if [ $execenv == "bigred" ]; then
+        OPTS="-v LMAX=$i_lmax:CCM=1 -l gres=ccm"
+    fi
+    lmax_jobids=$lmax_jobids:$(qsub $OPTS -W depend=afterok:$prep_jobid lmax.pbs)
+done
+
+###############################################################
+# run track.pbs (after all lmax.pbs)
+
+track_jobids=""
+track=0
+while [ $track -lt `jq -r '.tracks' config.json` ]; do
+    if [ $execenv == "karst" ]; then
+        OPTS="-v TRACK=$track"
+    fi
+
+    if [ $execenv == "bigred" ]; then
+        OPTS="-v TRACK=$track:CCM=1 -l gres=ccm"
+    fi
+    track_jobids=$track_jobids:$(qsub $OPTS -W depend=afterok:$lmax_jobids track.pbs)
+
+    let track=track+1
+done
+
+###############################################################
+# submit final.pbs
+
+final_jobid=$(qsub -W depend=afterok:$track_jobids final.pbs)
+echo $final_jobid > jobid
+
+
