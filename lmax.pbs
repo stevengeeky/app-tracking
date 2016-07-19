@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1:dc2
-#PBS -l walltime=900
+#PBS -l walltime=3:00:00
 #PBS -N neuro-tracking.lmax
 #PBS -V
 
@@ -15,6 +15,7 @@ MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted' config.json`
 module load mrtrix/0.2.12
 
 ###################################################################################################
+# create lmax.N.mif (should take about 10 minutes to several hours - depending on lmax value)
 
 outfile=lmax.${LMAX}.mif
 if [ -f $outfile ]; then
