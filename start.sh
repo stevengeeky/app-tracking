@@ -44,6 +44,7 @@ fi
 if [ $execenv == "bigred" ]; then
     OPTS="-v CCM=1 -l gres=ccm"
 fi
+echo "qsub $OPTS $SCA_SERVICE_DIR/prep.pbs"
 prep_jobid=$(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
 echo "prep_jobid:$prep_jobid"
 

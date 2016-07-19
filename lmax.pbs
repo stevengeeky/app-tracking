@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=1:dc2:walltime=900
-#PBS -N sca-service-neuro-tracking(lmax)
+##PBS -N sca-service-neuro-tracking_lmax
 
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
 echo "input_dwi_b:$input_dwi_b"
