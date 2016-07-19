@@ -31,8 +31,8 @@ fi
 echo "seems to be running on $execenv"
 
 echo "clean up from previous run"
-rm products.json
-rm finished 
+rm -f products.json
+rm -f finished 
 
 ###############################################################
 # run prep.pbs

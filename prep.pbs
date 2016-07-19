@@ -2,6 +2,7 @@
 #PBS -l nodes=1:ppn=1:dc2
 #PBS -l walltime=3600
 #PBS -N sca-service-neuro-tracking(prep)
+#PBS -V
 
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
