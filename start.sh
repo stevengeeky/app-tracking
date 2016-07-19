@@ -45,6 +45,7 @@ if [ $execenv == "bigred" ]; then
     OPTS="-v CCM=1 -l gres=ccm"
 fi
 prep_jobid=$(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
+echo "prep_jobid:$prep_jobid"
 
 ###############################################################
 # run lmax.pbs (after prep.pbs)
@@ -60,29 +61,13 @@ for i_lmax in `jq '.lmax[]' config.json`; do
     fi
     lmax_jobids=$lmax_jobids:$(qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs)
 done
-
-###############################################################
-# run track.pbs (after all lmax.pbs)
-
-track_jobids=""
-track=0
-while [ $track -lt `jq -r '.tracks' config.json` ]; do
-    if [ $execenv == "karst" ]; then
-        OPTS="-v TRACK=$track"
-    fi
-
-    if [ $execenv == "bigred" ]; then
-        OPTS="-v TRACK=$track:CCM=1 -l gres=ccm"
-    fi
-    track_jobids=$track_jobids:$(qsub $OPTS -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/track.pbs)
-
-    let track=track+1
-done
+echo "lmax_jobids:$lmax_jobids"
 
 ###############################################################
 # submit final.pbs
 
-final_jobid=$(qsub -W depend=afterok:$track_jobids $SCA_SERVICE_DIR/final.pbs)
+final_jobid=$(qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs)
+echo "final_jobid:$final_jobid"
 echo $final_jobid > jobid
 
 
