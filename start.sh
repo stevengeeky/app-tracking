@@ -51,7 +51,6 @@ echo "prep_jobid:$prep_jobid"
 ###############################################################
 # run lmax.pbs (after prep.pbs)
 
-lmax_jobids=""
 for i_lmax in `jq '.lmax[]' config.json`; do
     if [ $execenv == "karst" ]; then
         OPTS="-v LMAX=$i_lmax"
@@ -61,7 +60,12 @@ for i_lmax in `jq '.lmax[]' config.json`; do
         OPTS="-v LMAX=$i_lmax:CCM=1 -l gres=ccm"
     fi
     echo "qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs"
-    lmax_jobids=$lmax_jobids:$(qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs)
+    lmax_jobid=$(qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs)
+    if [ -z "$lmax_jobids" ]; then
+        lmax_jobids=$lmax_jobid
+    else
+        lmax_jobids=$lmax_jobids:$lmax_jobid
+    fi
 done
 echo "lmax_jobids:$lmax_jobids"
 
