@@ -1,5 +1,5 @@
 {
-  "name": "sca-service-neuro-tracking-step1",
+  "name": "sca-service-neuro-tracking",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,12 +10,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/soichih/sca-service-neuro-tracking-step1.git"
+    "url": "git+https://github.com/soichih/sca-service-neuro-tracking.git"
   },
   "author": "Soichi Hayashi <hayashis@iu.edu> (http://soichi.us)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/soichih/sca-service-neuro-tracking-step1/issues"
+    "url": "https://github.com/soichih/sca-service-neuro-tracking/issues"
   },
-  "homepage": "https://github.com/soichih/sca-service-neuro-tracking-step1#readme"
+  "homepage": "https://github.com/soichih/sca-service-neuro-tracking#readme"
 }
