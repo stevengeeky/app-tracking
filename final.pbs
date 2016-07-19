@@ -1,0 +1,9 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1:dc2
+#PBS -l walltime=60
+#PBS -N sca-service-neuro-tracking(final)
+
+$SCA_SERVICE_DIR/write_products.py
+
+echo "all done successfully"
+echo 0 > finished
