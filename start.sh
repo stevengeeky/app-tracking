@@ -44,7 +44,7 @@ fi
 if [ $execenv == "bigred" ]; then
     OPTS="-v CCM=1 -l gres=ccm"
 fi
-prep_jobid = $(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
+prep_jobid=$(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
 
 ###############################################################
 # run lmax.pbs (after prep.pbs)
