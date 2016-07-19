@@ -60,6 +60,7 @@ for i_lmax in `jq '.lmax[]' config.json`; do
     if [ $execenv == "bigred" ]; then
         OPTS="-v LMAX=$i_lmax:CCM=1 -l gres=ccm"
     fi
+    echo "qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs"
     lmax_jobids=$lmax_jobids:$(qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs)
 done
 echo "lmax_jobids:$lmax_jobids"
@@ -67,6 +68,7 @@ echo "lmax_jobids:$lmax_jobids"
 ###############################################################
 # submit final.pbs
 
+echo "qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs"
 final_jobid=$(qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs)
 echo "final_jobid:$final_jobid"
 echo $final_jobid > jobid
