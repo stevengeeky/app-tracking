@@ -4,6 +4,8 @@
 #PBS -N sca-service-neuro-tracking(final)
 #PBS -V
 
+cd $PBS_O_WORKDIR
+
 $SCA_SERVICE_DIR/write_products.py
 
 echo "all done successfully"

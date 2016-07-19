@@ -4,6 +4,8 @@
 #PBS -N sca-service-neuro-tracking(lmax)
 #PBS -V
 
+cd $PBS_O_WORKDIR
+
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
 echo "input_dwi_b:$input_dwi_b"
 

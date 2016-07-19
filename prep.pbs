@@ -4,6 +4,8 @@
 #PBS -N sca-service-neuro-tracking(prep)
 #PBS -V
 
+cd $PBS_O_WORKDIR
+
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
 input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
