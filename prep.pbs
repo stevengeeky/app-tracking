@@ -7,20 +7,21 @@
 cd $PBS_O_WORKDIR
 
 #pull some input params
-input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.nii_gz' config.json`
-input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
-input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_nii_gz' config.json`
+input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.dwi_path' config.json`
+input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
+input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
 
 echo "input_nii_gz:$input_nii_gz"
 echo "input_dwi_b:$input_dwi_b"
 
 #only used for tensor generation
 NUMFIBERS=`jq -r '.fibers' config.json`
-MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted' config.json`
+MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
 
 ###################################################################################################
+# This could be moved out of here and processed by a dedicated preprocessing (mrconvert) service 
 
 echo "converting input to mif (should take a few minutes)"
 if [ -f dwi.mif ]; then
@@ -111,6 +112,7 @@ else
 fi
 
 ###################################################################################################
+# This could be moved out of here and processed by a dedicated preprocessing (mrconvert) service 
 
 #Franco says wm_mask.nii.gz comes from somewhere else
 #echo "converting wm_mask.nii.gz to mif"

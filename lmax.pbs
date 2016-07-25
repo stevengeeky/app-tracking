@@ -10,7 +10,7 @@ input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
 echo "input_dwi_b:$input_dwi_b"
 
 NUMFIBERS=`jq -r '.fibers' config.json`
-MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max_attempted' config.json`
+MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
 
