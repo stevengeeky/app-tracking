@@ -22,7 +22,7 @@ if [ -f $outfile ]; then
     echo "$outfile already exist... skipping"
 else
     echo "computing lmax:$LMAX"
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating lmax:$LMAX\"}" ${SCA_PROGRESS_URL}.lmax_$LMAX > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"csdeconv lmax:$LMAX\"}" ${SCA_PROGRESS_URL}.csdeconv_$LMAX > /dev/null
     time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $LMAX -mask brainmask.mif $outfile
     ret=$?
     if [ ! $ret -eq 0 ]; then
@@ -38,16 +38,17 @@ fi
 # tracktype loop
 
 for i_tracktype in SD_STREAM SD_PROB; do
-    progress_url=${SCA_PROGRESS_URL}.streamtrack.$i_tracktype.$LMAX
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\":\"running steamtrack\"}" $progress_url > /dev/null
+    progress_url=${SCA_PROGRESS_URL}.$i_tracktype
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"$i_tracktype\"}" $progress_url > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"steamtrack lmax:$LMAX\"}" $progress_url.$LMAX > /dev/null
     time streamtrack $i_tracktype lmax.${LMAX}.mif output.${i_tracktype}.${LMAX}.tck -seed wm.mif -mask wm.mif  -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on trackstream:$LMAX\"}" $progress_url > /dev/null
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" $progress_url.$LMAX > /dev/null
         echo $ret > finished
         exit $ret
     fi
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" $progress_url > /dev/null
+    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" $progress_url.$LMAX > /dev/null
 done
 
 ###################################################################################################
