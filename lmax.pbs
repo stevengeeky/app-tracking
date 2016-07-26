@@ -6,7 +6,7 @@
 
 cd $PBS_O_WORKDIR
 
-input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.dwi_b' config.json`
+input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
 echo "input_dwi_b:$input_dwi_b"
 
 NUMFIBERS=`jq -r '.fibers' config.json`
