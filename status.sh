@@ -30,6 +30,11 @@ if [ -f jobid ]; then
         exit 0 #running!
     fi
 
+    if [ $jobstate == "H" ]; then
+        echo "Held - probably waiting for dependency"
+        exit 0 
+    fi
+
     #assume failed for all other state
     echo "Jobs failed - PBS job state: $jobstate"
     exit 2
