@@ -16,8 +16,8 @@ if [ -f finished ]; then
     fi
 fi
 
-if [ -f jobid ]; then
-    jobid=`cat jobid`
+if [ -f final_jobid ]; then
+    jobid=`cat final_jobid`
     jobstate=`qstat -f $jobid | grep job_state | cut -b17`
     if [ $jobstate == "Q" ]; then
         echo "Waiting in the queue"

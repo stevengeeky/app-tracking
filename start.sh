@@ -33,6 +33,7 @@ echo "seems to be running on $execenv"
 echo "clean up from previous run"
 rm -f products.json
 rm -f finished 
+rm -f jobid
 
 ###############################################################
 # run prep.pbs
@@ -46,6 +47,7 @@ if [ $execenv == "bigred" ]; then
 fi
 echo "qsub $OPTS $SCA_SERVICE_DIR/prep.pbs"
 prep_jobid=$(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
+echo $prep_jobid >> jobid
 echo "prep_jobid:$prep_jobid"
 
 ###############################################################
@@ -61,6 +63,7 @@ for i_lmax in `jq '.lmax[]' config.json`; do
     fi
     echo "qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs"
     lmax_jobid=$(qsub $OPTS -W depend=afterok:$prep_jobid $SCA_SERVICE_DIR/lmax.pbs)
+    echo $lmax_jobid >> jobid
     if [ -z "$lmax_jobids" ]; then
         lmax_jobids=$lmax_jobid
     else
@@ -74,7 +77,8 @@ echo "lmax_jobids:$lmax_jobids"
 
 echo "qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs"
 final_jobid=$(qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs)
+echo $final_jobid >> jobid
+echo $final_jobid > final_jobid
 echo "final_jobid:$final_jobid"
 echo $final_jobid > jobid
-
 
