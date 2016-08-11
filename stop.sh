@@ -1,4 +1,4 @@
 #!/bin/bash
-jobids=`cat jobid`
+jobids=`cat jobids`
 echo "running qdel $jobids"
 qdel $jobids
