@@ -48,7 +48,7 @@ if [ $execenv == "bigred" ]; then
 fi
 echo "qsub $OPTS $SCA_SERVICE_DIR/prep.pbs"
 prep_jobid=$(qsub $OPTS $SCA_SERVICE_DIR/prep.pbs)
-echo $prep_jobid >> jobid
+echo $prep_jobid >> jobids
 echo "prep_jobid:$prep_jobid"
 
 ###############################################################
