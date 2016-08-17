@@ -37,6 +37,13 @@ rm -f jobids
 rm -f final_jobid
 
 ###############################################################
+# write .mrtrix.conf
+# TODO - handle a case where this file already exists
+if [ ! -e $HOME/.mrtrix.conf ]; then
+    echo "NumberOfThreads: 4" > $HOME/.mrtrix.conf
+fi
+
+###############################################################
 # run prep.pbs
 
 if [ $execenv == "karst" ]; then
@@ -82,4 +89,6 @@ echo $final_jobid >> jobids
 echo $final_jobid > final_jobid
 echo "final_jobid:$final_jobid"
 echo $final_jobid > jobid
+
+curl -X POST -H "Content-Type: application/json" -d "{\"status\": \"waiting\", \"progress\": 0, \"msg\":\"Final Job: $final_jobid Waiting in PBS queue on $execenv\"}" $SCA_PROGRESS_URL
 
