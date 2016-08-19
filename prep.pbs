@@ -8,8 +8,35 @@ cd $PBS_O_WORKDIR
 
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.dwi_path' config.json`
-input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
+#input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
+BVALS=`$SCA_SERVICE_DIR/jq -r '.bvals_path' config.json`
+BVECS=`$SCA_SERVICE_DIR/jq -r '.bvecs_path' config.json`
 input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
+
+###################################################################################################
+#
+# convert .bvals .bvecs into a single .b
+#
+input_dwi_b="grad.b"
+## transpose output w/ original at the top
+cat $BVECS $BVALS | awk '
+{ 
+   for (i=1; i<=NF; i++)  {
+       a[NR,i] = $i
+   }
+}
+NF>p { p = NF }
+END {    
+   for(j=1; j<=p; j++) {
+       str=a[1,j]
+       for(i=2; i<=NR; i++){
+           str=str" "a[i,j];
+       }
+       print str
+   }
+}' > $input_dwi_b
+#
+###################################################################################################
 
 echo "input_nii_gz:$input_nii_gz"
 echo "input_dwi_b:$input_dwi_b"
