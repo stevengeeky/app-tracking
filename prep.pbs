@@ -8,7 +8,7 @@ cd $PBS_O_WORKDIR
 
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.dwi_path' config.json`
-#input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
+#BGRAD=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
 BVALS=`$SCA_SERVICE_DIR/jq -r '.bvals_path' config.json`
 BVECS=`$SCA_SERVICE_DIR/jq -r '.bvecs_path' config.json`
 input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
@@ -17,7 +17,19 @@ input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
 #
 # convert .bvals .bvecs into a single .b
 #
-input_dwi_b="grad.b"
+# sample .bvals
+# 1 2 3
+# sample .bvecs
+# 3 4 5 
+# 7 8 9 
+# 2 3 4 
+# 5 6 7 
+# sample output grad.b
+# 3 7 2 5 1
+# 4 8 3 6 2
+# 5 9 4 7 3
+
+BGRAD="grad.b"
 ## transpose output w/ original at the top
 cat $BVECS $BVALS | awk '
 { 
@@ -34,12 +46,12 @@ END {
        }
        print str
    }
-}' > $input_dwi_b
+}' > $BGRAD
 #
 ###################################################################################################
 
 echo "input_nii_gz:$input_nii_gz"
-echo "input_dwi_b:$input_dwi_b"
+echo "BGRAD:$BGRAD"
 
 #only used for tensor generation
 NUMFIBERS=`jq -r '.fibers' config.json`
@@ -91,7 +103,7 @@ if [ -f dt.mif ]; then
     echo "dt.mif already exist... skipping"
 else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
-    time dwi2tensor dwi.mif -grad $input_dwi_b dt.mif 
+    time dwi2tensor dwi.mif -grad $BGRAD dt.mif 
 fi
 
 if [ -f fa.mif ]; then
@@ -127,7 +139,7 @@ if [ -f response.txt ]; then
     echo "response.txt already exist... skipping"
 else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
-    time estimate_response dwi.mif sf.mif -lmax 6 -grad $input_dwi_b response.txt
+    time estimate_response dwi.mif sf.mif -lmax 6 -grad $BGRAD response.txt
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
@@ -161,7 +173,7 @@ if [ -f tensor.tck ]; then
 else
     echo "computing tensor"
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating tensor\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
-    time streamtrack DT_STREAM dwi.mif tensor.tck -seed wm.mif -mask wm.mif -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+    time streamtrack DT_STREAM dwi.mif tensor.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null

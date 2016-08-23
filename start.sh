@@ -88,7 +88,6 @@ final_jobid=$(qsub -W depend=afterok:$lmax_jobids $SCA_SERVICE_DIR/final.pbs)
 echo $final_jobid >> jobids
 echo $final_jobid > final_jobid
 echo "final_jobid:$final_jobid"
-echo $final_jobid > jobid
 
 curl -X POST -H "Content-Type: application/json" -d "{\"status\": \"waiting\", \"progress\": 0, \"msg\":\"Final Job: $final_jobid Waiting in PBS queue on $execenv\"}" $SCA_PROGRESS_URL
 
