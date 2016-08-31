@@ -8,9 +8,9 @@ cd $PBS_O_WORKDIR
 
 #pull some input params
 input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.dwi_path' config.json`
-#BGRAD=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
 BVALS=`$SCA_SERVICE_DIR/jq -r '.bvals_path' config.json`
 BVECS=`$SCA_SERVICE_DIR/jq -r '.bvecs_path' config.json`
+BGRAD="grad.b"
 input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
 
 ###################################################################################################
@@ -29,7 +29,6 @@ input_mask_nii_gz=`$SCA_SERVICE_DIR/jq -r '.mask_path' config.json`
 # 4 8 3 6 2
 # 5 9 4 7 3
 
-BGRAD="grad.b"
 ## transpose output w/ original at the top
 cat $BVECS $BVALS | awk '
 { 

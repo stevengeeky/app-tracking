@@ -6,8 +6,9 @@
 
 cd $PBS_O_WORKDIR
 
-input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
-echo "input_dwi_b:$input_dwi_b"
+#input_dwi_b=`$SCA_SERVICE_DIR/jq -r '.b_path' config.json`
+#echo "input_dwi_b:$input_dwi_b"
+BGRAD="grad.b"
 
 NUMFIBERS=`jq -r '.fibers' config.json`
 MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
@@ -23,7 +24,7 @@ if [ -f $outfile ]; then
 else
     echo "computing lmax:$LMAX"
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"csdeconv lmax:$LMAX\"}" ${SCA_PROGRESS_URL}.csdeconv_$LMAX > /dev/null
-    time csdeconv dwi.mif -grad $input_dwi_b response.txt -lmax $LMAX -mask brainmask.mif $outfile
+    time csdeconv dwi.mif -grad $BGRAD response.txt -lmax $LMAX -mask brainmask.mif $outfile
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax_$LMAX > /dev/null
@@ -41,7 +42,7 @@ for i_tracktype in SD_STREAM SD_PROB; do
     progress_url=${SCA_PROGRESS_URL}.$i_tracktype
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"$i_tracktype\"}" $progress_url > /dev/null
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"steamtrack lmax:$LMAX\"}" $progress_url.$LMAX > /dev/null
-    time streamtrack $i_tracktype lmax.${LMAX}.mif output.${i_tracktype}.${LMAX}.tck -seed wm.mif -mask wm.mif  -grad $input_dwi_b -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+    time streamtrack $i_tracktype lmax.${LMAX}.mif output.${i_tracktype}.${LMAX}.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" $progress_url.$LMAX > /dev/null
