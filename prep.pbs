@@ -58,6 +58,8 @@ NUMFIBERS=`jq -r '.fibers' config.json`
 MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
+module load freesurfer
+module load matlab
 
 ###################################################################################################
 # This could be moved out of here and processed by a dedicated preprocessing (mrconvert) service 
@@ -185,4 +187,9 @@ curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"stat
 
 ###################################################################################################
 
+# Make a white matter mask to use for tracking.
+export MATLABPATH=$SCA_SERVICE_DIR
+matlab -nodisplay -nosplash -r main.m
+
+###################################################################################################
 echo "prep done successfully"
