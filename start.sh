@@ -3,6 +3,14 @@
 ###############################################################
 # do some prep work
 
+#make it testable 
+if [ -z $SCA_SERVICE_DIR ]; then
+	export SCA_SERVICE_DIR=`pwd`
+fi
+if [ -z "$SCA_PROGRESS_URL" ]; then
+    export SCA_PROGRESS_URL="https://soichi7.ppa.iu.edu/api/progress/status/_sca.test"
+fi
+
 #make sure jq is installed on $SCA_SERVICE_DIR
 if [ ! -f $SCA_SERVICE_DIR/jq ];
 then
