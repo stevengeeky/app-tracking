@@ -154,7 +154,7 @@ fi
 
 # Make a white matter mask to use for tracking.
 export MATLABPATH=$SCA_SERVICE_DIR
-matlab -nodisplay -nosplash -r main
+time matlab -nodisplay -nosplash -r main
 
 ###################################################################################################
 # This could be moved out of here and processed by a dedicated preprocessing (mrconvert) service 
