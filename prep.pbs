@@ -67,7 +67,7 @@ if [ -f dwi.mif ]; then
     echo "dwi.mif already exist... skipping"
 else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
-    time mrconvert $input_nii_gz dwi.mif
+    time mrconvert --quiet $input_nii_gz dwi.mif
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
@@ -168,7 +168,7 @@ if [ -f wm.mif ]; then
     echo "wm.mif already exist... skipping"
 else
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"converting wm.nii.gz to wm.mif\"}" ${SCA_PROGRESS_URL}.masknii > /dev/null
-    time mrconvert wm.nii.gz wm.mif
+    time mrconvert --quiet wm.nii.gz wm.mif
 fi
 
 ###################################################################################################
