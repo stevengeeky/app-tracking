@@ -69,7 +69,7 @@ echo "prep_jobid:$prep_jobid"
 ###############################################################
 # run lmax.pbs (after prep.pbs)
 
-for i_lmax in `jq '.lmax[]' config.json`; do
+for i_lmax in `$SCA_SERVICE_DIR/jq '.lmax[]' config.json`; do
     if [ $execenv == "karst" ]; then
         OPTS="-v LMAX=$i_lmax"
     fi
