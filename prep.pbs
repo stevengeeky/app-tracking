@@ -52,8 +52,8 @@ echo "input_nii_gz:$input_nii_gz"
 echo "BGRAD:$BGRAD"
 
 #only used for tensor generation
-NUMFIBERS=`jq -r '.fibers' config.json`
-MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
+NUMFIBERS=`$SCA_SERVICE_DIR/jq -r '.fibers' config.json`
+MAXNUMFIBERSATTEMPTED=`$SCA_SERVICE_DIR/jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
 module load freesurfer

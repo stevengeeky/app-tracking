@@ -10,8 +10,8 @@ cd $PBS_O_WORKDIR
 #echo "input_dwi_b:$input_dwi_b"
 BGRAD="grad.b"
 
-NUMFIBERS=`jq -r '.fibers' config.json`
-MAXNUMFIBERSATTEMPTED=`jq -r '.fibers_max' config.json`
+NUMFIBERS=`$SCA_SERVICE_DIR/jq -r '.fibers' config.json`
+MAXNUMFIBERSATTEMPTED=`$SCA_SERVICE_DIR/jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
 
