@@ -14,6 +14,9 @@ wmMaskFile = 'wm.nii.gz';
 
 % Find the FreeSurfer files
 fs_wm = fullfile(config.freesurfer,'mri','aseg.mgz');
+
+disp('working directory is');
+pwd
 eval(sprintf('!mri_convert  --out_orientation RAS %s %s', fs_wm, wmMaskFile));
 wm       = niftiRead(wmMaskFile);
 wm.fname = 'wm.nii.gz';
