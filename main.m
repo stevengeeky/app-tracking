@@ -6,12 +6,9 @@ if isempty(getenv('SCA_SERVICE_DIR'))
 end
 
 disp('loading paths')
-addpath(genpath('/N/u/hayashis/BigRed2/git/encode'))
+%addpath(genpath('/N/u/hayashis/BigRed2/git/encode')) %not used?
 addpath(genpath('/N/u/hayashis/BigRed2/git/vistasoft'))
 addpath(genpath('/N/u/hayashis/BigRed2/git/jsonlab'))
-
-%addpath(genpath('/N/u/hayashis/BigRed2/git/mba')) %not used by life?
-%addpath(genpath(getenv('SCA_SERVICE_DIR'))) %load life scripts and all
 
 % load my own config.json
 config = loadjson('config.json');

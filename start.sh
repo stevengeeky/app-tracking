@@ -5,7 +5,7 @@
 
 #make it testable 
 if [ -z $SCA_SERVICE_DIR ]; then
-	export SCA_SERVICE_DIR=`pwd`
+    export SCA_SERVICE_DIR=`pwd`
 fi
 if [ -z "$SCA_PROGRESS_URL" ]; then
     export SCA_PROGRESS_URL="https://soichi7.ppa.iu.edu/api/progress/status/_sca.test"
@@ -14,9 +14,9 @@ fi
 #make sure jq is installed on $SCA_SERVICE_DIR
 if [ ! -f $SCA_SERVICE_DIR/jq ];
 then
-        echo "installing jq"
-        wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O $SCA_SERVICE_DIR/jq
-        chmod +x $SCA_SERVICE_DIR/jq
+    echo "installing jq"
+    wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O $SCA_SERVICE_DIR/jq
+    chmod +x $SCA_SERVICE_DIR/jq
 fi
 
 #patch libssl issue caused by some module overriding libpath
