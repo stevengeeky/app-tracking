@@ -153,16 +153,9 @@ fi
 
 ###################################################################################################
 
-# Make a white matter mask to use for tracking.
+# Generate white matter mask (wm.mii.gz) used by tracking later
 export MATLABPATH=$MATLABPATH:$SCA_SERVICE_DIR
 time matlab -nodisplay -nosplash -r main
-
-###################################################################################################
-# This could be moved out of here and processed by a dedicated preprocessing (mrconvert) service 
-
-#Franco says wm_mask.nii.gz comes from somewhere else
-#echo "converting wm_mask.nii.gz to mif"
-#time convert wm mask (less than a minute) (used by step 3?)
 
 echo "converting wm.nii.gz to wm.mif"
 if [ -f wm.mif ]; then
@@ -173,7 +166,7 @@ else
 fi
 
 ###################################################################################################
-# tensor
+# mrtrix/streamtrack
 
 if [ -f tensor.tck ]; then
     echo "tensor.tck already exist... skipping"
