@@ -36,7 +36,7 @@ else
 fi
 
 ###################################################################################################
-# tracktype loop
+# stramtrack 
 
 for i_tracktype in SD_STREAM SD_PROB; do
     progress_url=${SCA_PROGRESS_URL}.$i_tracktype
