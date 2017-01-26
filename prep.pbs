@@ -18,16 +18,17 @@ BGRAD="grad.b"
 # convert .bvals .bvecs into a single .b
 #
 # sample .bvals
-# 1 2 3
+# 2000 2001 2002 2003 2004
 # sample .bvecs
-# 3 4 5 
-# 7 8 9 
-# 2 3 4 
-# 5 6 7 
+# 1 4 7 10 13
+# 2 5 8 11 14
+# 3 6 9 12 15
 # sample output grad.b
-# 3 7 2 5 1
-# 4 8 3 6 2
-# 5 9 4 7 3
+# 1 2 3 2000
+# 4 5 6 2001
+# 7 8 9 2002
+# 10 11 12 2003
+# 13 14 15 2003
 
 ## transpose output w/ original at the top
 cat $BVECS $BVALS | tr ',' ' ' | awk '
@@ -57,7 +58,7 @@ NUMFIBERS=`$SCA_SERVICE_DIR/jq -r '.fibers' config.json`
 MAXNUMFIBERSATTEMPTED=`$SCA_SERVICE_DIR/jq -r '.fibers_max' config.json`
 
 module load mrtrix/0.2.12
-module load freesurfer
+module load freesurfer/5.3.0
 module load matlab
 
 ###################################################################################################
@@ -170,7 +171,8 @@ if [ -f tensor.tck ]; then
 else
     echo "computing tensor"
     curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating tensor\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
-    time streamtrack DT_STREAM dwi.mif tensor.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
+    #mrtrix doc says streamtrack/DT_STREAM doesn't need grad.. but without it, it fails
+    time streamtrack DT_STREAM dwi.mif output.DT_STREAM.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
     ret=$?
     if [ ! $ret -eq 0 ]; then
         curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
