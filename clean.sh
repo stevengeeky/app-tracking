@@ -9,5 +9,4 @@ rm response.txt
 rm *.mif
 rm grad.b
 rm *.tck
-rm products.json
 rm wm.nii.gz

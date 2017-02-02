@@ -5,6 +5,12 @@
 #return code 2 = failed
 #return code 3 = status unknown
 
+##now wait for running to go away
+if [ -z $SCA_WORKFLOW_DIR ]; then export SCA_WORKFLOW_DIR=`pwd`; fi
+if [ -z $SCA_TASK_DIR ]; then export SCA_TASK_DIR=`pwd`; fi
+if [ -z $SCA_SERVICE_DIR ]; then export SCA_SERVICE_DIR=`pwd`; fi
+if [ -z $SCA_PROGRESS_URL ]; then export SCA_PROGRESS_URL="https://soichi7.ppa.iu.edu/api/progress/status/_sca.test"; fi
+
 if [ -f finished ]; then
     code=`cat finished`
     if [ $code -eq 0 ]; then
@@ -16,17 +22,17 @@ if [ -f finished ]; then
     fi
 fi
 
-if [ -f final_jobid ]; then
-    jobid=`cat final_jobid`
+if [ -f jobid ]; then
+    jobid=`cat jobid`
     jobstate=`qstat -f $jobid | grep job_state | cut -b17`
     if [ -z $jobstate ]; then
         echo "Job removed before completing - maybe timed out?" 
         exit 2
     fi
     if [ $jobstate == "Q" ]; then
-        echo "Waiting in the queue"
         eststart=`showstart $jobid | grep start`
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"msg\":\"Waiting in the PBS queue : $eststart\"}" $SCA_PROGRESS_URL
+        echo "Waiting in the queue - $eststart"
+        curl -s -X POST -H "Content-Type: application/json" -d "{\"msg\":\"Waiting in the PBS queue : $eststart\"}" $SCA_PROGRESS_URL > /dev/null
         exit 0 #running!
     fi
     if [ $jobstate == "R" ]; then
