@@ -52,6 +52,6 @@ OPTS=""
 if [ $execenv == "bigred" ]; then
     OPTS="-v CCM=1 -l gres=ccm"
 fi
-jobid=`qsub $OPTS submit.pbs`
+jobid=`qsub $OPTS $SCA_SERVICE_DIR/submit.pbs`
 echo $jobid > jobid
 curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"waiting\", \"progress\": 0, \"msg\":\"Job: $jobid Waiting in PBS queue on $execenv\"}" $SCA_PROGRESS_URL > /dev/null

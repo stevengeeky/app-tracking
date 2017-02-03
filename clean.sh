@@ -1,9 +1,6 @@
-rm neuro-tracking.prep.*
-rm neuro-tracking.final.*
-rm neuro-tracking.lmax.*
+rm neuro-tracking.*
 rm finished
-rm jobid*
-rm final_jobid
+rm jobid
 rm jq
 rm response.txt
 rm *.mif
