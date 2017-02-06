@@ -1,6 +1,6 @@
 [![Abcdspec-compliant](https://img.shields.io/badge/ABCD_Spec-v1.0-green.svg)](https://github.com/soichih/abcd-spec)
 
-This service generates `emsemble` of fibers using various fiber tracking algorithms.
+This service generates `ensemble` of fibers using various fiber tracking algorithms.
 
 # Installation
 
