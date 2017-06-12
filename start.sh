@@ -4,20 +4,8 @@
 # do some prep work
 
 #make it testable 
-if [ -z $SCA_SERVICE_DIR ]; then
-    export SCA_SERVICE_DIR=`pwd`
-fi
-if [ -z "$SCA_PROGRESS_URL" ]; then
-    export SCA_PROGRESS_URL="https://soichi7.ppa.iu.edu/api/progress/status/_sca.test"
-fi
-
-#make sure jq is installed on $SCA_SERVICE_DIR
-if [ ! -f $SCA_SERVICE_DIR/jq ];
-then
-    echo "installing jq"
-    wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O $SCA_SERVICE_DIR/jq
-    chmod +x $SCA_SERVICE_DIR/jq
-fi
+if [ -z $SERVICE_DIR ]; then export SERVICE_DIR=`pwd`; fi
+if [ -z $ENV ]; then export ENV=IUHPC; fi
 
 #patch libssl issue caused by some module overriding libpath
 #unset LD_LIBRARY_PATH
@@ -52,6 +40,6 @@ OPTS=""
 if [ $execenv == "bigred" ]; then
     OPTS="-v CCM=1 -l gres=ccm"
 fi
-jobid=`qsub $OPTS $SCA_SERVICE_DIR/submit.pbs`
+jobid=`qsub $OPTS $SERVICE_DIR/submit.pbs`
 echo $jobid > jobid
-curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"waiting\", \"progress\": 0, \"msg\":\"Job: $jobid Waiting in PBS queue on $execenv\"}" $SCA_PROGRESS_URL > /dev/null
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"waiting\", \"progress\": 0, \"msg\":\"Job: $jobid Waiting in PBS queue on $execenv\"}" $PROGRESS_URL > /dev/null

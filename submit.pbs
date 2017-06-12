@@ -12,12 +12,12 @@ module load matlab
 
 BGRAD="grad.b"
 
-input_nii_gz=`$SCA_SERVICE_DIR/jq -r '.dwi' config.json`
-BVALS=`$SCA_SERVICE_DIR/jq -r '.bvals' config.json`
-BVECS=`$SCA_SERVICE_DIR/jq -r '.bvecs' config.json`
-NUMFIBERS=`$SCA_SERVICE_DIR/jq -r '.fibers' config.json`
-MAXNUMFIBERSATTEMPTED=`$SCA_SERVICE_DIR/jq -r '.fibers_max' config.json`
-LMAX=`$SCA_SERVICE_DIR/jq -r '.lmax' config.json`
+input_nii_gz=`$SERVICE_DIR/jq -r '.dwi' config.json`
+BVALS=`$SERVICE_DIR/jq -r '.bvals' config.json`
+BVECS=`$SERVICE_DIR/jq -r '.bvecs' config.json`
+NUMFIBERS=`$SERVICE_DIR/jq -r '.fibers' config.json`
+MAXNUMFIBERSATTEMPTED=`$SERVICE_DIR/jq -r '.fibers_max' config.json`
+LMAX=`$SERVICE_DIR/jq -r '.lmax' config.json`
 
 #TODO - validate other fields?
 if [ $LMAX == "null" ]; then
@@ -71,15 +71,13 @@ echo "converting dwi input to mif (should take a few minutes)"
 if [ -f dwi.mif ]; then
     echo "dwi.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"Converting input data to mif\"}" ${SCA_PROGRESS_URL}.input2dwi > /dev/null
     time mrconvert --quiet $input_nii_gz dwi.mif
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
+        #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
         echo $ret > finished
         exit $ret
-    else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.input2mif > /dev/null
     fi
 fi
 
@@ -89,15 +87,13 @@ echo "make brainmask from dwi data (about 18 minutes)"
 if [ -f brainmask.mif ]; then
     echo "brainmask.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"create mask from dwi.mif\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
     time average dwi.mif -axis 3 - | threshold - - | median3D - - | median3D - brainmask.mif
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
+        #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi3mask > /dev/null
         echo $ret > finished
         exit $ret
-    else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2mask > /dev/null
     fi
 fi
 
@@ -107,22 +103,20 @@ echo "fit tensor model (takes about 16 minutes)"
 if [ -f dt.mif ]; then
     echo "dt.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running dwi2tensor\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
     time dwi2tensor dwi.mif -grad $BGRAD dt.mif 
 fi
 
 if [ -f fa.mif ]; then
     echo "fa.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.3, \"status\": \"running\", \"msg\": \"running tensor2FA\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
     time tensor2FA dt.mif - | mrmult - brainmask.mif fa.mif
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
+        #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
         echo $ret > finished
         exit $ret
-    else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.dwi2tensor > /dev/null
     fi
 fi
 
@@ -132,37 +126,35 @@ echo "estimate response function"
 if [ -f sf.mif ]; then
     echo "sf.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running erode\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"running erode\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
     time erode brainmask.mif -npass 3 - | mrmult fa.mif - - | threshold - -abs 0.7 sf.mif
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.5, \"status\": \"running\", \"msg\": \"running estimate_response\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
 fi
 
 if [ -f response.txt ]; then
     echo "response.txt already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0.8, \"status\": \"running\", \"msg\": \"running estimate_reponse\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
     time estimate_response dwi.mif sf.mif -lmax 6 -grad $BGRAD response.txt
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
+        #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
         echo $ret > finished
         exit $ret
-    else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.estimate > /dev/null
     fi
 fi
 
 ###################################################################################################
 
 # Generate white matter mask (wm.mii.gz) from t1(freesurfer output [mri/aseg.mgz]) used by tracking later 
-export MATLABPATH=$MATLABPATH:$SCA_SERVICE_DIR
+export MATLABPATH=$MATLABPATH:$SERVICE_DIR
 time matlab -nodisplay -nosplash -r main
 
 echo "converting wm.nii.gz to wm.mif"
 if [ -f wm.mif ]; then
     echo "wm.mif already exist... skipping"
 else
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"converting wm.nii.gz to wm.mif\"}" ${SCA_PROGRESS_URL}.masknii > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"converting wm.nii.gz to wm.mif\"}" ${PROGRESS_URL}.masknii > /dev/null
     time mrconvert --quiet wm.nii.gz wm.mif
 fi
 
@@ -170,16 +162,16 @@ fi
 # tensor tracking (DT_STREAM)
 
 echo "computing tensor"
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating tensor\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"generating tensor\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
 #mrtrix doc says streamtrack/DT_STREAM doesn't need grad.. but without it, it fails
 time streamtrack DT_STREAM dwi.mif output.DT_STREAM.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
 ret=$?
 if [ ! $ret -eq 0 ]; then
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\", \"msg\":\"failed on track\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
     echo $ret > finished
     exit $ret
 fi
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.tensor > /dev/null
 
 
 ###################################################################################################
@@ -190,23 +182,21 @@ if [ -f $outfile ]; then
     echo "$outfile already exist... skipping"
 else
     echo "computing lmax"
-    curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"csdeconv lmax\"}" ${SCA_PROGRESS_URL}.csdeconv > /dev/null
+    #curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"msg\": \"csdeconv lmax\"}" ${SCA_PROGRESS_URL}.csdeconv > /dev/null
     time csdeconv dwi.mif -grad $BGRAD response.txt -lmax $LMAX -mask brainmask.mif $outfile
     ret=$?
     if [ ! $ret -eq 0 ]; then
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax > /dev/null
+        #curl -s -X POST -H "Content-Type: application/json" -d "{\"status\": \"failed\"}" ${SCA_PROGRESS_URL}.lmax > /dev/null
         echo $ret > finished
         exit $ret
-    else
-        curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"status\": \"finished\"}" ${SCA_PROGRESS_URL}.lmax > /dev/null
     fi
 fi
 
 ###################################################################################################
 # stramtrack  (SD_STREAM)
 
-progress_url=${SCA_PROGRESS_URL}.SD_STREAM
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"SD_STREAM\"}" $progress_url > /dev/null
+#progress_url=${SCA_PROGRESS_URL}.SD_STREAM
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"SD_STREAM\"}" $progress_url > /dev/null
 time streamtrack SD_STREAM lmax.mif output.SD_STREAM.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -218,9 +208,9 @@ curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 1, \"stat
 ###################################################################################################
 # stramtrack  (SD_PROB)
 
-progress_url=${SCA_PROGRESS_URL}.SD_PROB
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"SD_PROB\"}" $progress_url > /dev/null
-curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"steamtrack lmax\"}" $progress_url > /dev/null
+#progress_url=${SCA_PROGRESS_URL}.SD_PROB
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"SD_PROB\"}" $progress_url > /dev/null
+#curl -s -X POST -H "Content-Type: application/json" -d "{\"progress\": 0, \"status\": \"running\", \"name\":\"steamtrack lmax\"}" $progress_url > /dev/null
 time streamtrack SD_PROB lmax.mif output.SD_PROB.tck -seed wm.mif -mask wm.mif -grad $BGRAD -number $NUMFIBERS -maxnum $MAXNUMFIBERSATTEMPTED
 ret=$?
 if [ ! $ret -eq 0 ]; then
@@ -240,10 +230,8 @@ matlab -nodisplay -nosplash -r tck2mat
 
 if [ -f output.DT_STREAM.mat ] && [ -f output.SD_STREAM.mat ] && [ -f output.SD_PROB.mat ];
 then 
-
    echo "all done"
    echo 0 > finished
-
 else 
    echo ".mat files missing"
    echo 1 > finished
