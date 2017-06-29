@@ -7,8 +7,8 @@
 if [ -z $SERVICE_DIR ]; then export SERVICE_DIR=`pwd`; fi
 if [ -z $ENV ]; then export ENV=IUHPC; fi
 
-#patch libssl issue caused by some module overriding libpath
-#unset LD_LIBRARY_PATH
+#cleanup
+rm -f finished
 
 #find out which environment we are in
 hostname | grep karst > /dev/null
