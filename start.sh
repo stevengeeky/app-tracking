@@ -10,7 +10,9 @@ if [ -z $ENV ]; then export ENV=IUHPC; fi
 #cleanup
 #rm -f finished
 
-cp ~/tracking.tar.gz ./ && tar -xf tracking.tar.gz && rm tracking.tar.gz
+cp ~/sd_prob.tar.gz ./ && tar -xf sd_prob.tar.gz && rm sd_prob.tar.gz
+cp ~/sd_stream.tar.gz ./ && tar -xf sd_stream.tar.gz && rm sd_stream.tar.gz
+cp ~/dt_stream.tar.gz ./ && tar -xf dt_stream.tar.gz && rm dt_stream.tar.gz
 
 #find out which environment we are in
 hostname | grep karst > /dev/null
