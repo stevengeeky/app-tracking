@@ -8,7 +8,9 @@ if [ -z $SERVICE_DIR ]; then export SERVICE_DIR=`pwd`; fi
 if [ -z $ENV ]; then export ENV=IUHPC; fi
 
 #cleanup
-rm -f finished
+#rm -f finished
+
+cp ~/tracking.tar.gz ./ && tar -xf tracking.tar.gz && rm tracking.tar.gz
 
 #find out which environment we are in
 hostname | grep karst > /dev/null
